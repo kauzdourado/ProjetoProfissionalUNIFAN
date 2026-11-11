@@ -1,28 +1,26 @@
 from datetime import date
 
-from database.dados import clientes
+from models.cliente import Cliente
+from repositories import cliente_repository
 from views.entrada import ler_texto, ler_data, apenas_digitos
 
 
 def calcular_idade(nascimento):
-        hoje = date.today()
-        idade = hoje.year - nascimento.year
-        if (hoje.month, hoje.day) < (nascimento.month, nascimento.day):
-            idade -= 1
-        return idade
+    hoje = date.today()
+    idade = hoje.year - nascimento.year
+    if (hoje.month, hoje.day) < (nascimento.month, nascimento.day):
+        idade -= 1
+    return idade
 
 
 def tipo_cliente(cliente):
-        idade = calcular_idade(cliente["nascimento"])
-        return "Adulto" if idade >= 18 else "Menor de idade"
+    idade = calcular_idade(cliente.nascimento)
+    return "Adulto" if idade >= 18 else "Menor de idade"
 
 
 def achar_cliente_por_telefone(telefone):
     telefone = apenas_digitos(telefone)
-    for cliente in clientes:
-        if cliente["telefone"] == telefone:
-            return cliente
-    return None
+    return cliente_repository.buscar_por_telefone(telefone)
 
 
 def cadastrar_cliente():
@@ -50,14 +48,8 @@ def cadastrar_cliente():
     else:
         problema_quimico = "Nenhum"
 
-    clientes.append({
-        "nome": nome,
-        "telefone": telefone,
-        "email": email,
-        "nascimento": nascimento,
-        "problema_quimico": problema_quimico,
-        })
-    cliente = clientes[-1]
+    cliente = Cliente(nome, telefone, email, nascimento, problema_quimico)
+    cliente_repository.inserir(cliente)
     print(f"Cliente {nome} cadastrado com sucesso! ({tipo_cliente(cliente)})")
 
 
@@ -67,11 +59,11 @@ def buscar_cliente():
     cliente = achar_cliente_por_telefone(telefone)
 
     if cliente:
-        idade = calcular_idade(cliente["nascimento"])
-        print(f'Nome: {cliente["nome"]}')
-        print(f'Telefone: {cliente["telefone"]}')
-        print(f'Email: {cliente["email"]}')
-        print(f'Data de nascimento: {cliente["nascimento"].strftime("%d/%m/%Y")} (Idade: {idade})')
-        print(f'Problema com produto químico: {cliente["problema_quimico"]}')
+        idade = calcular_idade(cliente.nascimento)
+        print(f"Nome: {cliente.nome}")
+        print(f"Telefone: {cliente.telefone}")
+        print(f"Email: {cliente.email}")
+        print(f'Data de nascimento: {cliente.nascimento.strftime("%d/%m/%Y")} (Idade: {idade})')
+        print(f"Problema com produto químico: {cliente.problema_quimico}")
     else:
         print("Cliente não encontrado.")

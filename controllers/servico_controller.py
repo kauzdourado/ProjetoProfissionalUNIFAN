@@ -1,14 +1,18 @@
-from database.dados import servicos
+import mysql.connector
+
+from models.servico import Servico
+from repositories import servico_repository
 from views.entrada import ler_inteiro, ler_preco, ler_texto
 
 
 def listar_servicos():
     print("\n=== Lista de Serviços ===")
+    servicos = servico_repository.listar()
     if not servicos:
         print("Nenhum serviço cadastrado.")
         return
-    for id_servico, dados in servicos.items():
-        print(f"ID: {id_servico} | {dados['nome']} | R$ {dados['preco']:.2f}")
+    for s in servicos:
+        print(f"ID: {s.id} | {s.nome} | R$ {s.preco:.2f}")
 
 
 def adicionar_servico():
@@ -19,14 +23,13 @@ def adicionar_servico():
         print("Cadastro cancelado.")
         return
 
-    novo_id = max(servicos) + 1 if servicos else 1
-    servicos[novo_id] = {"nome": nome, "preco": preco}
+    servico_repository.inserir(Servico(nome, preco))
     print("Serviço adicionado com sucesso!")
 
 
 def alterar_servicos():
     print("\n--- Alterar Serviço ---")
-    if not servicos:
+    if not servico_repository.listar():
         print("Nenhum serviço cadastrado.")
         return
 
@@ -34,27 +37,29 @@ def alterar_servicos():
     id_servico = ler_inteiro("ID do serviço a alterar (Enter cancela): ")
     if id_servico is None:
         return
-    if id_servico not in servicos:
+
+    atual = servico_repository.buscar_por_id(id_servico)
+    if atual is None:
         print("Serviço não encontrado.")
         return
 
-    atual = servicos[id_servico]
     print("Deixe em branco para manter o valor atual.")
 
-    novo_nome = input(f"Novo nome [{atual['nome']}]: ").strip()
+    novo_nome = input(f"Novo nome [{atual.nome}]: ").strip()
     if novo_nome:
-        atual["nome"] = novo_nome
+        atual.nome = novo_nome
 
-    novo_preco = ler_preco(f"Novo preço [{atual['preco']:.2f}]: R$ ")
+    novo_preco = ler_preco(f"Novo preço [{atual.preco:.2f}]: R$ ")
     if novo_preco is not None:
-        atual["preco"] = novo_preco
+        atual.preco = novo_preco
 
+    servico_repository.atualizar(atual)
     print("Serviço alterado com sucesso!")
 
 
 def excluir_servico():
     print("\n--- Excluir Serviço ---")
-    if not servicos:
+    if not servico_repository.listar():
         print("Nenhum serviço cadastrado.")
         return
 
@@ -62,14 +67,18 @@ def excluir_servico():
     id_servico = ler_inteiro("ID do serviço a excluir (Enter cancela): ")
     if id_servico is None:
         return
-    if id_servico not in servicos:
+
+    servico = servico_repository.buscar_por_id(id_servico)
+    if servico is None:
         print("Serviço não encontrado.")
         return
 
-    nome = servicos[id_servico]["nome"]
-    confirmacao = input(f"Excluir '{nome}'? (s/n): ").strip().lower()
+    confirmacao = input(f"Excluir '{servico.nome}'? (s/n): ").strip().lower()
     if confirmacao == "s":
-        del servicos[id_servico]
-        print(f"Serviço '{nome}' excluído com sucesso!")
+        try:
+            servico_repository.excluir(id_servico)
+            print(f"Serviço '{servico.nome}' excluído com sucesso!")
+        except mysql.connector.IntegrityError:
+            print("Não é possível excluir: esse serviço já está em agendamentos.")
     else:
         print("Exclusão cancelada.")
