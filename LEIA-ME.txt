@@ -1,0 +1,32 @@
+BARBEARIA ABOBRINHA - GIT BASICO
+ 
+==============================
+1. CONECTAR (so uma vez)
+==============================
+ 
+Configurar seu nome e e-mail (os mesmos do GitHub):
+ 
+    git config --global user.name "Seu Nome"
+    git config --global user.email "seuemail@exemplo.com"
+ 
+Baixar o projeto:
+ 
+    git clone COLE_AQUI_O_LINK_DO_REPOSITORIO
+    cd NOME_DA_PASTA_DO_PROJETO
+ 
+ 
+==============================
+2. SALVAR (sempre que mexer)
+==============================
+ 
+Antes de comecar, puxar as novidades:
+ 
+    git pull
+ 
+Depois de editar e salvar os arquivos:
+ 
+    git add .
+    git commit -m "descreva o que voce fez"
+    git push
+ 
+NUNCA envie o arquivo database/config.py (tem sua senha).
